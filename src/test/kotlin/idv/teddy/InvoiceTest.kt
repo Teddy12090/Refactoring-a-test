@@ -35,12 +35,7 @@ class InvoiceTest {
                 every { expected.getPercentDiscount() } returns BigDecimal("30")
                 every { expected.getExtendedPrice() } returns BigDecimal("69.96")
                 val actItem: LineItem = lineItems[0]
-                assertEquals(expected.getInv(), actItem.getInv(), "invoice")
-                assertEquals(expected.getProd(), actItem.getProd(), "product")
-                assertEquals(expected.getQuantity(), actItem.getQuantity(), "quantity")
-                assertEquals(expected.getPercentDiscount(), actItem.getPercentDiscount(), "discount")
-                assertEquals(expected.getUnitPrice(), actItem.getUnitPrice(), "unit price")
-                assertEquals(expected.getExtendedPrice(), actItem.getExtendedPrice(), "extended price")
+                assertEquals(expected, actItem)
             } else {
                 fail("Invoice should have exactly one line item")
             }
@@ -52,6 +47,15 @@ class InvoiceTest {
             deleteObject(billingAddress)
             deleteObject(shippingAddress)
         }
+    }
+
+    private fun assertEquals(expected: LineItem, actItem: LineItem) {
+        assertEquals(expected.getInv(), actItem.getInv(), "invoice")
+        assertEquals(expected.getProd(), actItem.getProd(), "product")
+        assertEquals(expected.getQuantity(), actItem.getQuantity(), "quantity")
+        assertEquals(expected.getPercentDiscount(), actItem.getPercentDiscount(), "discount")
+        assertEquals(expected.getUnitPrice(), actItem.getUnitPrice(), "unit price")
+        assertEquals(expected.getExtendedPrice(), actItem.getExtendedPrice(), "extended price")
     }
 
     private fun fail(@Suppress("SameParameterValue") msg: String) {
