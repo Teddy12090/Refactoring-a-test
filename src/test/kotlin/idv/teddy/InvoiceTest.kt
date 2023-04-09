@@ -1,5 +1,6 @@
 package idv.teddy
 
+import com.github.javafaker.Faker
 import io.mockk.every
 import io.mockk.mockkObject
 import org.junit.jupiter.api.AfterEach
@@ -7,6 +8,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
+import java.util.UUID
+import kotlin.math.absoluteValue
 
 
 class InvoiceTest {
@@ -33,26 +36,53 @@ class InvoiceTest {
 
     @Test
     fun testAddItemQuantity_severalQuantity_v1() {
-        val billingAddress = Address("1222 1st St SW", "Calgary", "Alberta", "T2N 2V2", "Canada")
-        registerTestObjects(billingAddress)
-        val shippingAddress = Address("1333  1st  St  SW", "Calgary", "Alberta", "T2N  2V2", "Canada")
-        registerTestObjects(shippingAddress)
-        val customer = Customer(99, "John", "Doe", BigDecimal("30"), billingAddress, shippingAddress)
-        registerTestObjects(customer)
-        val product = Product(88, "SomeWidget", BigDecimal("19.99"))
-        registerTestObjects(product)
-        val invoice = Invoice(customer)
-        registerTestObjects(invoice)
+        val quantity = 5
+        val unitPrice = BigDecimal("19.99")
+        val percentDiscount = BigDecimal("30")
+        val customer = createACustomer(percentDiscount)
+        val product = createProduct(unitPrice)
+        val invoice = createInvoice(customer)
 
         // Exercise SUT
-        invoice.addItemQuantity(product, 5)
+        invoice.addItemQuantity(product, quantity)
 
         // Verify outcome
-        val expected = LineItem(invoice, product, 5)
+        val extendedPrice = BigDecimal("69.96")
+        val expected = LineItem(invoice, product, quantity)
         mockkObject(expected)
-        every { expected.getPercentDiscount() } returns BigDecimal("30")
-        every { expected.getExtendedPrice() } returns BigDecimal("69.96")
+        every { expected.getPercentDiscount() } returns percentDiscount
+        every { expected.getExtendedPrice() } returns extendedPrice
         assertContainsExactlyOneLineItem(invoice, expected)
+    }
+
+    private fun createACustomer(percentDiscount: BigDecimal): Customer {
+        val billingAddress = createAddress()
+        val shippingAddress = createAddress()
+        val customer = Customer(getUniqueNumber(), "John", "Doe", percentDiscount, billingAddress, shippingAddress)
+        registerTestObjects(customer)
+        return customer
+    }
+
+    private fun createInvoice(customer: Customer): Invoice {
+        val invoice = Invoice(customer)
+        registerTestObjects(invoice)
+        return invoice
+    }
+
+    private fun createProduct(unitPrice: BigDecimal): Product {
+        val product = Product(getUniqueNumber(), "SomeWidget", unitPrice)
+        registerTestObjects(product)
+        return product
+    }
+
+    private fun getUniqueNumber() = UUID.randomUUID().hashCode().absoluteValue
+
+    private fun createAddress(): Address {
+        val faker = Faker()
+        val addressFaker = faker.address()
+        val address = Address(addressFaker.fullAddress(), addressFaker.city(), addressFaker.state(), addressFaker.zipCode(), addressFaker.country())
+        registerTestObjects(address)
+        return address
     }
 
     private fun assertContainsExactlyOneLineItem(invoice: Invoice, expected: LineItem) {

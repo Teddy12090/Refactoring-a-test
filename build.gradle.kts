@@ -14,6 +14,7 @@ repositories {
 dependencies {
     testImplementation(kotlin("test"))
     testImplementation("io.mockk:mockk:1.13.4")
+    testImplementation("com.github.javafaker:javafaker:1.0.2")
 }
 
 tasks.test {
