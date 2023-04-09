@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.util.UUID
 import kotlin.math.absoluteValue
 
@@ -47,7 +48,8 @@ class InvoiceTest {
         invoice.addItemQuantity(product, quantity)
 
         // Verify outcome
-        val extendedPrice = BigDecimal("69.96")
+        val basePrice = unitPrice.multiply(BigDecimal.valueOf(quantity.toLong()))
+        val extendedPrice = basePrice.subtract(basePrice.multiply(percentDiscount.movePointLeft(2))).setScale(2, RoundingMode.DOWN)
         val expected = LineItem(invoice, product, quantity)
         mockkObject(expected)
         every { expected.getPercentDiscount() } returns percentDiscount
