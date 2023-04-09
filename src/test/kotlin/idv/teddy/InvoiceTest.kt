@@ -3,7 +3,6 @@ package idv.teddy
 import io.mockk.every
 import io.mockk.mockkObject
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 
@@ -29,16 +28,13 @@ class InvoiceTest {
 
             // Verify outcome
             val lineItems: List<LineItem> = invoice.getLineItems()
-            if (lineItems.size == 1) {
-                val expected = LineItem(invoice, product, 5)
-                mockkObject(expected)
-                every { expected.getPercentDiscount() } returns BigDecimal("30")
-                every { expected.getExtendedPrice() } returns BigDecimal("69.96")
-                val actItem: LineItem = lineItems[0]
-                assertEquals(expected, actItem)
-            } else {
-                fail("Invoice should have exactly one line item")
-            }
+            assertEquals(1, lineItems.size)
+            val expected = LineItem(invoice, product, 5)
+            mockkObject(expected)
+            every { expected.getPercentDiscount() } returns BigDecimal("30")
+            every { expected.getExtendedPrice() } returns BigDecimal("69.96")
+            val actItem: LineItem = lineItems[0]
+            assertEquals(expected, actItem)
         } finally {
             // Teardown
             deleteObject(invoice)
@@ -56,10 +52,6 @@ class InvoiceTest {
         assertEquals(expected.getPercentDiscount(), actItem.getPercentDiscount(), "discount")
         assertEquals(expected.getUnitPrice(), actItem.getUnitPrice(), "unit price")
         assertEquals(expected.getExtendedPrice(), actItem.getExtendedPrice(), "extended price")
-    }
-
-    private fun fail(@Suppress("SameParameterValue") msg: String) {
-        assertTrue(false, msg)
     }
 
     private fun deleteObject(@Suppress("UNUSED_PARAMETER") obj: Any?) {
