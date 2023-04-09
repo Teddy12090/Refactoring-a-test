@@ -27,14 +27,11 @@ class InvoiceTest {
             invoice.addItemQuantity(product, 5)
 
             // Verify outcome
-            val lineItems: List<LineItem> = invoice.getLineItems()
-            assertEquals(1, lineItems.size)
             val expected = LineItem(invoice, product, 5)
             mockkObject(expected)
             every { expected.getPercentDiscount() } returns BigDecimal("30")
             every { expected.getExtendedPrice() } returns BigDecimal("69.96")
-            val actItem: LineItem = lineItems[0]
-            assertEquals(expected, actItem)
+            assertContainsExactlyOneLineItem(invoice, expected)
         } finally {
             // Teardown
             deleteObject(invoice)
@@ -45,7 +42,10 @@ class InvoiceTest {
         }
     }
 
-    private fun assertEquals(expected: LineItem, actItem: LineItem) {
+    private fun assertContainsExactlyOneLineItem(invoice: Invoice, expected: LineItem) {
+        val lineItems: List<LineItem> = invoice.getLineItems()
+        assertEquals(1, lineItems.size)
+        val actItem: LineItem = lineItems[0]
         assertEquals(expected.getInv(), actItem.getInv(), "invoice")
         assertEquals(expected.getProd(), actItem.getProd(), "product")
         assertEquals(expected.getQuantity(), actItem.getQuantity(), "quantity")
