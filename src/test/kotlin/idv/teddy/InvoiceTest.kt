@@ -53,11 +53,50 @@ class InvoiceTest {
         // Verify outcome
         val basePrice = this.unitPrice.multiply(BigDecimal.valueOf(quantity.toLong()))
         val extendedPrice = basePrice.subtract(basePrice.multiply(this.percentDiscount.movePointLeft(2))).setScale(2, RoundingMode.DOWN)
+        val expected = createLineItem(invoice, quantity, extendedPrice)
+        assertContainsExactlyOneLineItem(invoice, expected)
+    }
+
+    @Test
+    fun testAddItemQuantity_oneQuantity() {
+        // setup fixture
+        val quantity = 1
+        val invoice = createInvoice(this.customer)
+
+        // Exercise SUT
+        invoice.addItemQuantity(this.product, quantity)
+
+        // Verify outcome
+        val basePrice = this.unitPrice.multiply(BigDecimal.valueOf(quantity.toLong()))
+        val extendedPrice = basePrice.subtract(basePrice.multiply(this.percentDiscount.movePointLeft(2))).setScale(2, RoundingMode.DOWN)
+        val expected = createLineItem(invoice, quantity, extendedPrice)
+        assertContainsExactlyOneLineItem(invoice, expected)
+    }
+
+    @Test
+    fun testChangeQuantity_severalQuantity() {
+        // setup fixture
+        val originalQuantity = 3
+        val newQuantity = 5
+        val invoice = createInvoice(this.customer)
+        invoice.addItemQuantity(this.product, originalQuantity)
+
+        // Exercise SUT
+        invoice.changeQuantityForProduct(this.product, newQuantity)
+
+        // Verify outcome
+        val basePrice = this.unitPrice.multiply(BigDecimal.valueOf(newQuantity.toLong()))
+        val extendedPrice = basePrice.subtract(basePrice.multiply(this.percentDiscount.movePointLeft(2))).setScale(2, RoundingMode.DOWN)
+        val expected = createLineItem(invoice, newQuantity, extendedPrice)
+        assertContainsExactlyOneLineItem(invoice, expected)
+    }
+
+    private fun createLineItem(invoice: Invoice, quantity: Int, extendedPrice: BigDecimal): LineItem {
         val expected = LineItem(invoice, this.product, quantity)
         mockkObject(expected)
         every { expected.getPercentDiscount() } returns this.percentDiscount
         every { expected.getExtendedPrice() } returns extendedPrice
-        assertContainsExactlyOneLineItem(invoice, expected)
+        return expected
     }
 
     private fun createACustomer(percentDiscount: BigDecimal): Customer {

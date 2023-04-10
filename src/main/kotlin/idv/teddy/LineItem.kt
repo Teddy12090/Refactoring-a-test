@@ -3,7 +3,7 @@ package idv.teddy
 import java.math.BigDecimal
 import java.math.RoundingMode
 
-class LineItem(private val invoice: Invoice, private val product: Product, private val quantity: Int) {
+data class LineItem(private val invoice: Invoice, private val product: Product, private val quantity: Int) {
     fun getInv(): Invoice {
         return invoice
     }

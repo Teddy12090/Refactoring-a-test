@@ -11,4 +11,8 @@ data class Invoice(val customer: Customer) {
         return lineItems
     }
 
+    fun changeQuantityForProduct(product: Product, newQuantity: Int) {
+        lineItems.replaceAll { if (it.getProd() != product) it else it.copy(quantity = newQuantity) }
+    }
+
 }
