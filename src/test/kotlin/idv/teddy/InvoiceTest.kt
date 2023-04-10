@@ -16,11 +16,17 @@ import kotlin.math.absoluteValue
 class InvoiceTest {
 
 
+    private val unitPrice = BigDecimal("19.99")
+    private val percentDiscount = BigDecimal("30")
     private lateinit var testObjects: MutableList<Any>
+    private lateinit var customer: Customer
+    private lateinit var product: Product
 
     @BeforeEach
     fun setUp() {
         testObjects = ArrayList()
+        customer = createACustomer(this.percentDiscount)
+        product = createProduct(this.unitPrice)
     }
 
     @AfterEach
@@ -37,22 +43,19 @@ class InvoiceTest {
 
     @Test
     fun testAddItemQuantity_severalQuantity_v1() {
+        // setup fixture
         val quantity = 5
-        val unitPrice = BigDecimal("19.99")
-        val percentDiscount = BigDecimal("30")
-        val customer = createACustomer(percentDiscount)
-        val product = createProduct(unitPrice)
-        val invoice = createInvoice(customer)
+        val invoice = createInvoice(this.customer)
 
         // Exercise SUT
-        invoice.addItemQuantity(product, quantity)
+        invoice.addItemQuantity(this.product, quantity)
 
         // Verify outcome
-        val basePrice = unitPrice.multiply(BigDecimal.valueOf(quantity.toLong()))
-        val extendedPrice = basePrice.subtract(basePrice.multiply(percentDiscount.movePointLeft(2))).setScale(2, RoundingMode.DOWN)
-        val expected = LineItem(invoice, product, quantity)
+        val basePrice = this.unitPrice.multiply(BigDecimal.valueOf(quantity.toLong()))
+        val extendedPrice = basePrice.subtract(basePrice.multiply(this.percentDiscount.movePointLeft(2))).setScale(2, RoundingMode.DOWN)
+        val expected = LineItem(invoice, this.product, quantity)
         mockkObject(expected)
-        every { expected.getPercentDiscount() } returns percentDiscount
+        every { expected.getPercentDiscount() } returns this.percentDiscount
         every { expected.getExtendedPrice() } returns extendedPrice
         assertContainsExactlyOneLineItem(invoice, expected)
     }
@@ -78,7 +81,6 @@ class InvoiceTest {
     }
 
     private fun getUniqueNumber() = UUID.randomUUID().hashCode().absoluteValue
-
     private fun createAddress(): Address {
         val faker = Faker()
         val addressFaker = faker.address()
