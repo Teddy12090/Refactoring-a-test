@@ -19,14 +19,12 @@ class InvoiceTest {
     private val unitPrice = BigDecimal("19.99")
     private val percentDiscount = BigDecimal("30")
     private lateinit var testObjects: MutableList<Any>
-    private lateinit var customer: Customer
     private lateinit var product: Product
 
     @BeforeEach
     fun setUp() {
         testObjects = ArrayList()
-        customer = createACustomer(this.percentDiscount)
-        product = createProduct(this.unitPrice)
+        product = createProduct(unitPrice)
     }
 
     @AfterEach
@@ -44,57 +42,59 @@ class InvoiceTest {
     @Test
     fun testAddItemQuantity_severalQuantity_v1() {
         // setup fixture
-        val quantity = 5
-        val invoice = createInvoice(this.customer)
+        val several = 5
+        val invoice = createCustomerInvoice(percentDiscount)
 
         // Exercise SUT
-        invoice.addItemQuantity(this.product, quantity)
+        invoice.addItemQuantity(product, several)
 
         // Verify outcome
-        val basePrice = this.unitPrice.multiply(BigDecimal.valueOf(quantity.toLong()))
-        val extendedPrice = basePrice.subtract(basePrice.multiply(this.percentDiscount.movePointLeft(2))).setScale(2, RoundingMode.DOWN)
-        val expected = createLineItem(invoice, quantity, extendedPrice)
+        val basePrice = unitPrice.multiply(BigDecimal.valueOf(several.toLong()))
+        val extendedPrice = basePrice.subtract(basePrice.multiply(percentDiscount.movePointLeft(2))).setScale(2, RoundingMode.DOWN)
+        val expected = createLineItem(invoice, several, extendedPrice)
         assertContainsExactlyOneLineItem(invoice, expected)
     }
+
+    private fun createCustomerInvoice(percentDiscount: BigDecimal) = createInvoice(createACustomer(percentDiscount))
 
     @Test
     fun testAddItemQuantity_oneQuantity() {
         // setup fixture
-        val quantity = 1
-        val invoice = createInvoice(this.customer)
+        val quantityOne = 1
+        val invoice = createCustomerInvoice(percentDiscount)
 
         // Exercise SUT
-        invoice.addItemQuantity(this.product, quantity)
+        invoice.addItemQuantity(product, quantityOne)
 
         // Verify outcome
-        val basePrice = this.unitPrice.multiply(BigDecimal.valueOf(quantity.toLong()))
-        val extendedPrice = basePrice.subtract(basePrice.multiply(this.percentDiscount.movePointLeft(2))).setScale(2, RoundingMode.DOWN)
-        val expected = createLineItem(invoice, quantity, extendedPrice)
+        val basePrice = unitPrice.multiply(BigDecimal.valueOf(quantityOne.toLong()))
+        val extendedPrice = basePrice.subtract(basePrice.multiply(percentDiscount.movePointLeft(2))).setScale(2, RoundingMode.DOWN)
+        val expected = createLineItem(invoice, quantityOne, extendedPrice)
         assertContainsExactlyOneLineItem(invoice, expected)
     }
 
     @Test
     fun testChangeQuantity_severalQuantity() {
         // setup fixture
-        val originalQuantity = 3
-        val newQuantity = 5
-        val invoice = createInvoice(this.customer)
-        invoice.addItemQuantity(this.product, originalQuantity)
+        val several = 3
+        val newQuantity = several + 2
+        val invoice = createCustomerInvoice(percentDiscount)
+        invoice.addItemQuantity(product, several)
 
         // Exercise SUT
-        invoice.changeQuantityForProduct(this.product, newQuantity)
+        invoice.changeQuantityForProduct(product, newQuantity)
 
         // Verify outcome
-        val basePrice = this.unitPrice.multiply(BigDecimal.valueOf(newQuantity.toLong()))
-        val extendedPrice = basePrice.subtract(basePrice.multiply(this.percentDiscount.movePointLeft(2))).setScale(2, RoundingMode.DOWN)
+        val basePrice = unitPrice.multiply(BigDecimal.valueOf(newQuantity.toLong()))
+        val extendedPrice = basePrice.subtract(basePrice.multiply(percentDiscount.movePointLeft(2))).setScale(2, RoundingMode.DOWN)
         val expected = createLineItem(invoice, newQuantity, extendedPrice)
         assertContainsExactlyOneLineItem(invoice, expected)
     }
 
     private fun createLineItem(invoice: Invoice, quantity: Int, extendedPrice: BigDecimal): LineItem {
-        val expected = LineItem(invoice, this.product, quantity)
+        val expected = LineItem(invoice, product, quantity)
         mockkObject(expected)
-        every { expected.getPercentDiscount() } returns this.percentDiscount
+        every { expected.getPercentDiscount() } returns percentDiscount
         every { expected.getExtendedPrice() } returns extendedPrice
         return expected
     }
