@@ -36,7 +36,7 @@ class InvoiceTest {
                 assertEquals(BigDecimal("19.99"), actItem.getUnitPrice(), "unit price")
                 assertEquals(BigDecimal("69.96"), actItem.getExtendedPrice(), "extended price")
             } else {
-                assertTrue(false, "Invoice should have 1 item")
+                fail("Invoice should have 1 item")
             }
         } finally {
             // Teardown
@@ -46,6 +46,10 @@ class InvoiceTest {
             deleteObject(billingAddress)
             deleteObject(shippingAddress)
         }
+    }
+
+    private fun fail(message: String) {
+        assertTrue(false, message)
     }
 
     private fun deleteObject(@Suppress("UNUSED_PARAMETER") obj: Any?) {
